@@ -1,3 +1,3 @@
 #pragma once
 
-int itoa(int i, char* buffer);
+char* itoa(int i, char* buffer);
