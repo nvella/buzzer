@@ -1,8 +1,8 @@
 {
   "uuid": "67809db5-c135-4d40-a134-99e66eaf2b93",
-  "shortName": "buzzer",
-  "longName": "buzzer",
-  "companyName": "MakeAwesomeHappen",
+  "shortName": "Buzzer",
+  "longName": "Buzzer",
+  "companyName": "Nick Vella",
   "versionLabel": "1.0",
   "sdkVersion": "3",
   "targetPlatforms": ["aplite", "basalt"],
