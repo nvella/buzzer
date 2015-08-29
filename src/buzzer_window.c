@@ -6,6 +6,8 @@
 
 int buzzer_window_time;
 bool buzzer_window_paused;
+int buzzer_window_buzzes;
+AppTimer* buzzer_window_timer;
 
 void buzzer_window_update_time() {
   // Create countdown string
@@ -22,6 +24,11 @@ void buzzer_window_update_time() {
   buffer[4] = (char)(48 + secs % 10);
 
   text_layer_set_text(buzzer_window_text_layer_time, buffer);
+
+  static char buzz_buffer[] = "Buzzes: 000000000"; // Can only make the buffer so long
+  char* end_of_buzzes = itoa(buzzer_window_buzzes, buzz_buffer + 8);
+  *end_of_buzzes = 0;
+  text_layer_set_text(buzzer_window_text_layer_buzzes, buzz_buffer);
 }
 
 void buzzer_window_timer_handler(void *context) {
@@ -32,6 +39,7 @@ void buzzer_window_timer_handler(void *context) {
   if(buzzer_window_time < 0) {
     // Buzzer time is under zero, reset it to the minute setting and buzz
     buzzer_window_time = main_window_buzz_time_mins * 60 - 1;
+    buzzer_window_buzzes++;
     vibes_double_pulse();
   }
 
@@ -39,7 +47,7 @@ void buzzer_window_timer_handler(void *context) {
   buzzer_window_update_time();
 
   // Reset the timeout
-  app_timer_register(1000, buzzer_window_timer_handler, NULL);
+  buzzer_window_timer = app_timer_register(1000, buzzer_window_timer_handler, NULL);
 }
 
 void buzzer_window_select_click_handler(ClickRecognizerRef recognizer, void *context) {
@@ -53,7 +61,7 @@ void buzzer_window_select_click_handler(ClickRecognizerRef recognizer, void *con
     // Blank paused layer
     text_layer_set_text(buzzer_window_text_layer_paused, "");
     // Reset timer
-    app_timer_register(1000, buzzer_window_timer_handler, NULL);
+    buzzer_window_timer = app_timer_register(1000, buzzer_window_timer_handler, NULL);
   }
 
   vibes_short_pulse();
@@ -71,10 +79,10 @@ void buzzer_window_load(Window *window) {
   // Set buzzer time and paused status
   buzzer_window_time = main_window_buzz_time_mins * 60 - 1;
   buzzer_window_paused = false;
+  buzzer_window_buzzes = 0;
 
   // Set up time text layer "XX mins"
   buzzer_window_text_layer_time = text_layer_create(GRect(0, bounds.size.h / 2 - 42 / 2 - 10, bounds.size.w, 42));
-  buzzer_window_update_time();
   text_layer_set_text_alignment(buzzer_window_text_layer_time, GTextAlignmentCenter);
   text_layer_set_font(buzzer_window_text_layer_time, fonts_get_system_font(FONT_KEY_BITHAM_42_BOLD));
   layer_add_child(window_layer, text_layer_get_layer(buzzer_window_text_layer_time));
@@ -85,11 +93,24 @@ void buzzer_window_load(Window *window) {
   text_layer_set_font(buzzer_window_text_layer_paused, fonts_get_system_font(FONT_KEY_GOTHIC_18));
   layer_add_child(window_layer, text_layer_get_layer(buzzer_window_text_layer_paused));
 
+  // Set up buzzes text layer
+  buzzer_window_text_layer_buzzes = text_layer_create(GRect(0, bounds.size.h / 4 * 3 - 20 / 2 - 2, bounds.size.w, 22));
+  text_layer_set_text_alignment(buzzer_window_text_layer_buzzes, GTextAlignmentCenter);
+  text_layer_set_font(buzzer_window_text_layer_buzzes, fonts_get_system_font(FONT_KEY_GOTHIC_18));
+  layer_add_child(window_layer, text_layer_get_layer(buzzer_window_text_layer_buzzes));
+
+  // Update the time (and other stuff)
+  buzzer_window_update_time();
+
   // Set the timer
-  app_timer_register(1000, buzzer_window_timer_handler, NULL);
+  buzzer_window_timer = app_timer_register(1000, buzzer_window_timer_handler, NULL);
 }
 
 void buzzer_window_unload(Window *window) {
   text_layer_destroy(buzzer_window_text_layer_time);
   text_layer_destroy(buzzer_window_text_layer_paused);
+  text_layer_destroy(buzzer_window_text_layer_buzzes);
+
+  buzzer_window_paused = true; // "pause" the timer, causing it to stop at next tick
+  app_timer_cancel(buzzer_window_timer); // cancel it anyway
 }
