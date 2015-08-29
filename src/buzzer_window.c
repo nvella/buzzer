@@ -91,4 +91,5 @@ void buzzer_window_load(Window *window) {
 
 void buzzer_window_unload(Window *window) {
   text_layer_destroy(buzzer_window_text_layer_time);
+  text_layer_destroy(buzzer_window_text_layer_paused);
 }
