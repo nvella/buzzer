@@ -1,8 +1,10 @@
 #include <pebble.h>
+
 #include "buzzer.h"
 #include "main_window.h"
+#include "buzzer_window.h"
 
-void update_time() {
+void main_window_update_time() {
   /**** <- This thing here 'static' => important */
   static char buffer[] = "00 mins";
   char* mins_ptr = itoa(main_window_buzz_time_mins, buffer);
@@ -10,33 +12,34 @@ void update_time() {
   text_layer_set_text(main_window_text_layer_time, buffer);
 }
 
-void select_click_handler(ClickRecognizerRef recognizer, void *context) {
+void main_window_select_click_handler(ClickRecognizerRef recognizer, void *context) {
   // Start the timer
   // Push the buzzer window onto the stack
+  window_stack_push(buzzer_window, true);
 }
 
-void up_click_handler(ClickRecognizerRef recognizer, void *context) {
+void main_window_up_click_handler(ClickRecognizerRef recognizer, void *context) {
   if(main_window_buzz_time_mins < 99)
     main_window_buzz_time_mins++;
   else
     main_window_buzz_time_mins = 1;
 
-  update_time();
+  main_window_update_time();
 }
 
-void down_click_handler(ClickRecognizerRef recognizer, void *context) {
+void main_window_down_click_handler(ClickRecognizerRef recognizer, void *context) {
   if(main_window_buzz_time_mins > 1)
     main_window_buzz_time_mins--;
   else
     main_window_buzz_time_mins = 99;
 
-  update_time();
+  main_window_update_time();
 }
 
 void main_window_click_config_provider(void *context) {
-  window_single_click_subscribe(BUTTON_ID_SELECT, select_click_handler);
-  window_single_click_subscribe(BUTTON_ID_UP, up_click_handler);
-  window_single_click_subscribe(BUTTON_ID_DOWN, down_click_handler);
+  window_single_click_subscribe(BUTTON_ID_SELECT, main_window_select_click_handler);
+  window_single_click_subscribe(BUTTON_ID_UP, main_window_up_click_handler);
+  window_single_click_subscribe(BUTTON_ID_DOWN, main_window_down_click_handler);
 }
 
 void main_window_load(Window *window) {
@@ -54,7 +57,7 @@ void main_window_load(Window *window) {
 
   // Set up time text layer "XX mins"
   main_window_text_layer_time = text_layer_create(GRect(0, 66, bounds.size.w, 50));
-  update_time();
+  main_window_update_time();
   text_layer_set_text_alignment(main_window_text_layer_time, GTextAlignmentCenter);
   text_layer_set_font(main_window_text_layer_time, fonts_get_system_font(FONT_KEY_BITHAM_30_BLACK));
 
