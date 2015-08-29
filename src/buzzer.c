@@ -1,6 +1,21 @@
 #include <pebble.h>
 #include "main_window.h"
 
+// Supports up to two digits, no negatives
+// Returns digits used
+// Does not append NULL
+int itoa(int i, char* buffer) {
+  if(i < 0) return 0; // Negative not supported
+  if(i < 10) { // Single digit
+    buffer[0] = (char)(48 + i);
+    return 1;
+  } else {
+    buffer[0] = (char)(48 + i / 10);
+    buffer[1] = (char)(48 + i % 10);
+    return 2;
+  }
+}
+
 static void init(void) {
   // Create all the windows
   main_window = window_create();
